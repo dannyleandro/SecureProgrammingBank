@@ -1,4 +1,4 @@
-% extends 'base/base.html'%}
+{% extends 'base/base.html'%}
 
 {% block title %} {{ title }} {% endblock %}
 
@@ -7,7 +7,7 @@
     <div class="container">
         {% if comments %}
             {% for comment in comments %}
-                <p> {{ comment.username }}</p>
+                <p> {{ comment[1] }}</p>
             {% endfor %}
         {% endif %}
     </div>

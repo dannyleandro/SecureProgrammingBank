@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Registro Exitoso BankAndes</title>
+    </head>
+    <body>
+        <h3>MUchas gracias por tu resgistro {{user}}</h3>
+        <br><br>
+        <h4>Listado OTP:</h3>
+        {% if otp_list %}
+            {% for otp in otp_list %}
+                        <p>{{ otp }}</p>
+            {% endfor %}
+        {% endif %}
+    </body>
+</html>
