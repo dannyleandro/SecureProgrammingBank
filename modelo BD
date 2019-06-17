@@ -10,6 +10,7 @@ CREATE TABLE transactions (id INT(11) AUTO_INCREMENT PRIMARY KEY,
                             user_id_dest INT(11),
                             valor INT(20),
                             type VARCHAR(30),
+                            otp INT(9),
                             created_date DATETIME,
                             FOREIGN KEY(user_id) REFERENCES users(id));
 
