@@ -1,0 +1,7 @@
+Flask
+Flask-MySQL==1.4.0
+PyMySQL==0.9.3
+passlib==1.7.1
+Flask-WTF==0.14.2
+mysqlclient==1.4.2
+Flask-Mail==0.9.1
