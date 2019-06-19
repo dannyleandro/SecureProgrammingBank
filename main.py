@@ -48,7 +48,7 @@ def before_request():
 
 @app.after_request
 def after_request(response):
-    print 'despues'
+    print ('despues')
 #    print g.test
     return response
 
@@ -60,7 +60,7 @@ def index():
     if 'username' in session:
         username = session['username']
         user_id = session['user_id']
-        print username
+        print (username)
 
     title = "BankAndes"
     return render_template('index.html', title = title)
@@ -88,7 +88,7 @@ def transaction():
 
                 c.execute("UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s", ['False', format_now, otp, user_id])
                 conn.commit()
-                print "Number of rows updated:",  c.rowcount
+                print ("Number of rows updated:",  c.rowcount)
 
 #UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
 
@@ -144,7 +144,7 @@ def login():
                     session['user_id'] = user[0][0]
                     c.close()
                     conn.close()
-                    return redirect(url_for('index'))
+                    return redirect(url_for('transaction'))
 
             error_message = "usuario o contrasena no validos!"
             flash(error_message)
@@ -203,8 +203,8 @@ def register():
         user = c.execute("SELECT * FROM users where username = (%s)", [username, ])
         user = c.fetchall()
         print len(user)
-        if len(user) != 0:
-            success_message = '{} ya existe, prueba uno diferente!'.format(username)
+        if len(user)!=0:
+            success_message ="ya existe, prueba uno diferente!"
             flash(success_message)
         else:
             now = datetime.datetime.now()
