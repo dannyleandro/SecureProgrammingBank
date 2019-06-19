@@ -20,92 +20,52 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     <div class="w3-bar w3-yellow w3-card w3-right-align w3-large">
         <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
         <a href="transactions" class="w3-bar-item w3-button w3-padding-large w3-white">Transactions</a>
+        <a href="thistory" class="w3-bar-item w3-button w3-padding-large w3-white">Historic Transactions</a>
         <a href="logout" class="w3-bar-item w3-button w3-padding-large w3-white">Logout</a>
 </div>
 </div>
 
 <header class="w3-container w3-yellow w3-center" style="padding:80px 16px">
     <h1 class="w3-margin w3-jumbo">BANK ANDES</h1>
-    <p class="w3-xlarge">Historic Transactions  {{ username }}</p>
+    <p class="w3-xlarge">Home Portal {{ username }} </p>
 </header>
 
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h3 class='section-heading align items center'> Transacciones Enviadas </h3>
+            <h3 class='section-heading align items center'> Cuentas Asignadas</h3>
         </div>
     </div>
     <br>
     <div class="form-group row align items center">
         <div class="col-sm-3">
-            <h5 class='section-heading'> Fecha </h5>
+            <h4 class='section-heading'> Fecha Creacion </h4>
         </div>
         <div class="col-sm-3">
-            <h5 class='section-heading'> Cuenta Destino </h5>
+            <h4 class='section-heading'> Cuenta </h4>
         </div>
         <div class="col-sm-3">
-            <h5 class='section-heading'> Usuario Destino </h5>
+            <h4 class='section-heading'> Cantidad </h4>
         </div>
         <div class="col-sm-3">
-            <h5 class='section-heading'> Cantidad </h5>
+            <h4 class='section-heading'> Fecha Ultima Transaccion </h4>
         </div>
 
     </div>
-    {% if sends %}
-        {% for send in sends %}
+    {% if accounts %}
+        {% for account in accounts %}
             <div class="form-group row align items center">
                 <div class="col-sm-3">
-                    <h5 class='section-heading'> {{ send[0] }} </h5>
+                    <h5 class='section-heading'> {{ account[0] }} </h5>
                 </div>
                 <div class="col-sm-3">
-                    <p> {{ send[1] }}</p>
+                    <h5> {{ account[1] }}</h5>
                 </div>
                 <div class="col-sm-3">
-                    <p>{{ send[2] }}</p>
+                    <h5>{{ account[2] }}</h5>
                 </div>
                 <div class="col-sm-3">
-                    <p>{{ send[3] }}</p>
-                </div>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <br><br>
-
-    <div class="form-group row align items center">
-        <div class="col-md-12">
-            <h3 class='section-heading align items center'> Transacciones Recibidas </h3>
-        </div>
-    </div>
-    <br>
-    <div class="form-group row align items center">
-        <div class="col-sm-3">
-            <h5 class='section-heading'> Fecha </h5>
-        </div>
-        <div class="col-sm-3">
-            <h5 class='section-heading'> Cuenta Origen </h5>
-        </div>
-        <div class="col-sm-3">
-            <h5 class='section-heading'> Usuario Origen </h5>
-        </div>
-        <div class="col-sm-3">
-            <h5 class='section-heading'> Cantidad </h5>
-        </div>
-    </div>
-    {% if receivers %}
-        {% for receiver in receivers %}
-            <div class="form-group row align items center">
-                <div class="col-sm-3">
-                    <h5 class='section-heading align items cente'> {{ receiver[0] }} </h5>
-                </div>
-                <div class="col-sm-3">
-                    <p> {{ receiver[1] }}</p>
-                </div>
-                <div class="col-sm-3">
-                    <p>{{ receiver[2] }}</p>
-                </div>
-                <div class="col-sm-3">
-                    <p>{{ receiver[3] }}</p>
+                    <h5>{{ account[3] }}</h5>
                 </div>
             </div>
         {% endfor %}

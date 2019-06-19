@@ -16,12 +16,9 @@
     .fa-anchor,.fa-coffee {font-size:200px}
     </style>
 
-    
-
-
 <div class="w3-top">
     {{message}}
-</div>     
+</div>
 
     <!-- Navbar -->
     <div class="w3-top">
@@ -31,10 +28,10 @@
             <a href="logout" class="w3-bar-item w3-button w3-padding-large w3-white">Logout</a>
         </div>
     </div>
-    
+
     <header class="w3-container w3-yellow w3-center" style="padding:60px 16px">
         <h1 class="w3-margin w3-jumbo">BANK ANDES</h1>
-        <p class="w3-xlarge">Transactions zone</p>
+        <p class="w3-xlarge">Transactions zone {{ username }}</p>
     </header>
 
     <div class="container" style="min-height:100%;width:80%">
@@ -48,14 +45,14 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
-        
+
         {% block body %}{% endblock %}
         </div>
 
     <div class="container">
             <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                
+
                 <br>
                 <form name="sentTransaction" id="contactForm" method="POST">
                     <div class="row control-group">
@@ -66,7 +63,13 @@
                     </div>
                     <div class="row control-group">
                         <div class="form-group col-xs-12 floating-label-form-group controls">
-                            {{ render_field(form.valor, class='form-control') }}
+                            {{ render_field(form.desaccount, class='form-control') }}
+                            <p class="help-block text-danger"></p>
+                        </div>
+                    </div>
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            {{ render_field(form.amount, class='form-control') }}
                             <p class="help-block text-danger"></p>
                         </div>
                     </div>
@@ -76,7 +79,7 @@
                             <p class="help-block text-danger"></p>
                         </div>
                     </div>
-                    
+
                     <div id="success"></div>
                     <div class="row">
                         <div class="form-group col-xs-12">

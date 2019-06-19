@@ -11,11 +11,14 @@ class TransactionForm(Form):
     validators.Required(message='El usuario es requerido!.'),
     validators.length(min=4, max=50, message='ingrese un usuario valido!.')
     ])
-    valor = IntegerField('Valor',
+    desaccount = IntegerField('Cuenta Destino',
     [
     validators.Required(message='El valor es requerido!.')
     ])
-
+    amount = IntegerField('Cantidad',
+    [
+    validators.Required(message='El valor es requerido!.')
+    ])
     otp = IntegerField('OTP',
     [
     validators.Required(message='El valor es requerido!.')

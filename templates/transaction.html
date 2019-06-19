@@ -16,17 +16,43 @@
     .fa-anchor,.fa-coffee {font-size:200px}
     </style>
 
-    <header class="w3-container w3-yellow w3-center" style="padding:20px 16px">
+<div class="w3-top">
+    {{message}}
+</div>
+
+    <!-- Navbar -->
+    <div class="w3-top">
+        <div class="w3-bar w3-yellow w3-card w3-right-align w3-large">
+            <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+            <a href="thistory" class="w3-bar-item w3-button w3-padding-large w3-white">Historic Transactions</a>
+            <a href="logout" class="w3-bar-item w3-button w3-padding-large w3-white">Logout</a>
+        </div>
+    </div>
+
+    <header class="w3-container w3-yellow w3-center" style="padding:60px 16px">
         <h1 class="w3-margin w3-jumbo">BANK ANDES</h1>
-        <p class="w3-xlarge">Transactions zone</p>
+        <p class="w3-xlarge">Transactions zone {{ username }}</p>
     </header>
-    
-    
-    
+
+    <div class="container" style="min-height:100%;width:80%">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-warning alert-dismissible" role="alert">
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                {{message}}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block body %}{% endblock %}
+        </div>
+
     <div class="container">
             <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-                <br>
+
                 <br>
                 <form name="sentTransaction" id="contactForm" method="POST">
                     <div class="row control-group">
@@ -37,7 +63,13 @@
                     </div>
                     <div class="row control-group">
                         <div class="form-group col-xs-12 floating-label-form-group controls">
-                            {{ render_field(form.valor, class='form-control') }}
+                            {{ render_field(form.desaccount, class='form-control') }}
+                            <p class="help-block text-danger"></p>
+                        </div>
+                    </div>
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            {{ render_field(form.amount, class='form-control') }}
                             <p class="help-block text-danger"></p>
                         </div>
                     </div>
@@ -47,11 +79,11 @@
                             <p class="help-block text-danger"></p>
                         </div>
                     </div>
-                    <br>
+
                     <div id="success"></div>
                     <div class="row">
                         <div class="form-group col-xs-12">
-                            <button type="submit" class="btn btn-default">Confirmar</button>
+                            <button type="submit" class="w3-button w3-black w3-padding-large w3-large w3-margin-top">Confirmar</button>
                         </div>
 
                     </div>

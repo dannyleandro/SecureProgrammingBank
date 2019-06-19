@@ -41,10 +41,10 @@ mail = Mail()
 
 @app.before_request
 def before_request():
-    if 'username' not in session and request.endpoint in ['transaction', 'thistory']:
-        return redirect(url_for('login'))
-    elif 'username' in session and request.endpoint in ['login', 'register']:
+    if 'username' not in session and request.endpoint in ['transaction', 'thistory', 'user']:
         return redirect(url_for('index'))
+    elif 'username' in session and request.endpoint in ['login', 'register']:
+        return redirect(url_for('user'))
 
 @app.after_request
 def after_request(response):
@@ -52,53 +52,94 @@ def after_request(response):
 #    print g.test
     return response
 
-
-
 @app.route('/')
 def index():
 #    print g.test
-    if 'username' in session:
-        username = session['username']
-        user_id = session['user_id']
-        print (username)
-
     title = "BankAndes"
     return render_template('index.html', title = title)
+
+@app.route('/user')
+def user():
+#    print g.test
+    username = session['username']
+    account_id = session['account_id']
+
+    c, conn = connection()
+
+    accounts = c.execute("SELECT created_date, id, amount, last_use_date, active FROM accounts WHERE id = %s and active = %s LIMIT 1",[account_id, 'True'])
+    accounts = c.fetchall()
+
+    c.close()
+    conn.close()
+    gc.collect()
+
+    title = "Home BankAndes"
+    return render_template('user.html', title = title, username = username, accounts = accounts)
 
 @app.route('/transactions', methods = ['GET','POST'])
 def transaction():
     transaction_form = forms.TransactionForm(request.form)
+
     if request.method == 'POST' and transaction_form.validate():
         c, conn = connection()
         user_id = session['user_id']
-        username_dest = transaction_form.desusername.data
-        user_dest = c.execute("SELECT * FROM users WHERE username = %s LIMIT 1",[username_dest, ])
-        user_dest = c.fetchall()
-        if len(user_dest) != 0:
-            otp = transaction_form.otp.data
-            otp_val = c.execute("SELECT * FROM otps WHERE otp = %s and user_id = %s and active = %s LIMIT 1",[otp, user_id, 'True'])
-            otp_val = c.fetchall()
-            if len(otp_val) != 0:
-                user_id_dest = user_dest[0][0]
-                valor = transaction_form.valor.data
-                type = 'Envio Transferencia'
-                now = datetime.datetime.now()
-                format_now = now.strftime('%Y-%m-%d %H:%M:%S')
-                transaction = c.execute("INSERT INTO transactions (user_id, user_id_dest, valor, type, otp, created_date) VALUES (%s, %s, %s, %s, %s, %s)", [user_id, user_id_dest, valor, type, otp, format_now])
+        username = session['username']
+        account_id = session['account_id']
 
-                c.execute("UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s", ['False', format_now, otp, user_id])
-                conn.commit()
-                print ("Number of rows updated:",  c.rowcount)
+        account = c.execute("SELECT id, amount, active FROM accounts WHERE id = %s and active = %s LIMIT 1",[account_id, 'True'])
+        account = c.fetchall()
 
-#UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
+        if len(account) != 0:
+            amount = transaction_form.amount.data
 
-                success_message = "Transaccion Realizada"
-                flash(success_message)
+            if amount <= 10000000:
+                if amount <= account[0][1]:
+                    username_dest = transaction_form.desusername.data
+                    account_dest = transaction_form.desaccount.data
+                    user_dest = c.execute("SELECT users.id, username, accounts.id, active, amount FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.id = %s and username = %s and active = %s LIMIT 1",[account_dest, username_dest, 'True'])
+                    user_dest = c.fetchall()
+
+                    if len(user_dest) != 0:
+                        otp = transaction_form.otp.data
+                        otp_val = c.execute("SELECT * FROM otps WHERE otp = %s and user_id = %s and active = %s LIMIT 1",[otp, user_id, 'True'])
+                        otp_val = c.fetchall()
+
+                        if len(otp_val) != 0:
+                            type = 'Transferencia'
+                            now = datetime.datetime.now()
+                            format_now = now.strftime('%Y-%m-%d %H:%M:%S')
+
+                            transaction = c.execute("INSERT INTO transactions (account_id, account_id_dest, username_dest, amount, type, otp, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s)", [account_id, account_dest, username_dest, amount, type, otp, format_now])
+
+                            c.execute("UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s", ['False', format_now, otp, user_id])
+
+                            amount_o = account[0][1] - amount
+                            c.execute("UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s", [amount_o, format_now, user_id])
+
+                            amount_d = user_dest[0][4] + amount
+                            c.execute("UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s", [amount_d, format_now, user_dest[0][0]])
+
+                            conn.commit()
+                            print ("Number of rows updated:",  c.rowcount)
+
+            #UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
+
+                            success_message = "Transaccion Realizada"
+                            flash(success_message)
+                        else:
+                            error_message = "OTP no valido!"
+                            flash(error_message)
+                    else:
+                        error_message = "usuario o cuenta destino no valido!"
+                        flash(error_message)
+                else:
+                    error_message = "monto excede fondos en la cuenta ..."
+                    flash(error_message)
             else:
-                error_message = "OTP no valido!"
+                error_message = "monto supera maximo permitido (COP $ 10.000.000)!"
                 flash(error_message)
         else:
-            error_message = "usuario destino no valido!"
+            error_message = "cuenta origen no existe o inactiva!"
             flash(error_message)
 
         c.close()
@@ -106,16 +147,17 @@ def transaction():
         gc.collect()
 
     title = "Transacciones BankAndes"
-    return render_template('transaction.html', title = title, form = transaction_form)
+    username = session['username']
+    return render_template('transaction.html', title = title, form = transaction_form, username = username)
 
 @app.route('/thistory', methods = ['GET'])
 def thistory():
     c, conn = connection()
-    user_id = session['user_id']
-    sends = c.execute("SELECT username, valor, transactions.created_date as date FROM transactions JOIN users ON users.id = transactions.user_id_dest WHERE user_id = %s ORDER BY date DESC LIMIT 10",[user_id, ])
+    account_id = session['account_id']
+    sends = c.execute("SELECT created_date, account_id_dest, username_dest, amount FROM transactions WHERE account_id = %s ORDER BY created_date DESC LIMIT 10",[account_id, ])
     sends = c.fetchall()
 
-    receivers = c.execute("SELECT username, valor, transactions.created_date as date FROM transactions JOIN users ON users.id = transactions.user_id WHERE user_id_dest = %s ORDER BY date DESC LIMIT 10 ",[user_id, ])
+    receivers = c.execute("SELECT created_date, account_id_dest, username_dest, amount FROM transactions WHERE account_id_dest = %s ORDER BY created_date DESC LIMIT 10",[account_id, ])
     receivers = c.fetchall()
 
     c.close()
@@ -123,8 +165,8 @@ def thistory():
     gc.collect()
 
     title = "Transaction History"
-
-    return render_template('thistory.html', sends = sends, receivers = receivers, title = title)
+    username = session['username']
+    return render_template('thistory.html', sends = sends, receivers = receivers, title = title, username = username)
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -134,7 +176,7 @@ def login():
         if request.method == 'POST' and login_form.validate():
             username = login_form.username.data
             password = login_form.password.data
-            user = c.execute("SELECT * FROM users WHERE username = %s LIMIT 1",[username, ])
+            user = c.execute("SELECT users.id, username, password, accounts.id as account FROM users JOIN accounts ON users.id = accounts.user_id  WHERE username = %s LIMIT 1",[username, ])
             user = c.fetchall()
             if len(user) !=0:
                 if sha256_crypt.verify(password, user[0][2]):
@@ -142,6 +184,7 @@ def login():
                     flash(success_message)
                     session['username'] = username
                     session['user_id'] = user[0][0]
+                    session['account_id'] = user[0][3]
                     c.close()
                     conn.close()
                     return redirect(url_for('transaction'))
@@ -169,7 +212,7 @@ def logout():
         session.clear()
         success_message = "has cerrado sesion correctamente!"
         flash(success_message)
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 
 def generar_otp(user_id, created_date):
@@ -204,7 +247,7 @@ def register():
         user = c.fetchall()
         print len(user)
         if len(user)!=0:
-            success_message ="ya existe, prueba uno diferente!"
+            success_message ="{} ya existe, prueba uno diferente!".format(username)
             flash(success_message)
         else:
             now = datetime.datetime.now()
@@ -224,6 +267,14 @@ def register():
                     otp_list = generar_otp(user_id, format_now)
 
                 print otp_list
+
+                in_amount = c.execute("SELECT * FROM accounts WHERE user_id = %s LIMIT 1",[user_id, ])
+                in_amount = c.fetchall()
+
+                if len(in_amount) == 0:
+                    amount = 50000000
+                    c.execute("INSERT into accounts (user_id, amount, created_date, last_use_date, active) VALUES (%s, %s, %s, %s, %s)",[user_id, amount, format_now, format_now, 'True'])
+                    conn.commit()
 
             success_message = 'Felicitaciones. {} ha sido registrado!'.format(username)
             flash(success_message)

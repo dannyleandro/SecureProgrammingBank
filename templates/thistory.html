@@ -4,75 +4,113 @@
 
 {% block content %}
 
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h3 class='section-heading align items center'> Transacciones Enviadas </h3>
-            </div>
-        </div>
-        <br>
-        <div class="form-group row align items center">
-            <div class="col-sm-4">
-                <h5 class='section-heading'> Fecha </h5>
-            </div>
-            <div class="col-sm-4">
-                <h5 class='section-heading'> Monto </h5>
-            </div>
-            <div class="col-sm-4">
-                <h5 class='section-heading'> Valor </h5>
-            </div>
-        </div>
-        {% if sends %}
-            {% for send in sends %}
-                <div class="form-group row align items center">
-                    <div class="col-sm-4">
-                        <h5 class='section-heading'> {{ send[2] }} </h5>
-                    </div>
-                    <div class="col-sm-4">
-                        <p> {{ send[1] }}</p>
-                    </div>
-                    <div class="col-sm-4">
-                        <p>{{ send[0] }}</p>
-                    </div>
-                </div>
-            {% endfor %}
-        {% endif %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+.w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+.fa-anchor,.fa-coffee {font-size:200px}
+</style>
 
-        <br><br>
+<div class="w3-top">
+    <div class="w3-bar w3-yellow w3-card w3-right-align w3-large">
+        <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+        <a href="transactions" class="w3-bar-item w3-button w3-padding-large w3-white">Transactions</a>
+        <a href="logout" class="w3-bar-item w3-button w3-padding-large w3-white">Logout</a>
+</div>
+</div>
 
-        <div class="form-group row align items center">
-            <div class="col-md-12">
-                <h3 class='section-heading align items center'> Transacciones Recibidas </h3>
-            </div>
+<header class="w3-container w3-yellow w3-center" style="padding:80px 16px">
+    <h1 class="w3-margin w3-jumbo">BANK ANDES</h1>
+    <p class="w3-xlarge">Historic Transactions  {{ username }}</p>
+</header>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h3 class='section-heading align items center'> Transacciones Enviadas </h3>
         </div>
-        <br>
-        <div class="form-group row align items center">
-            <div class="col-sm-4">
-                <h5 class='section-heading'> Fecha </h5>
-            </div>
-            <div class="col-sm-4">
-                <h5 class='section-heading'> Destinatario </h5>
-            </div>
-            <div class="col-sm-4">
-                <h5 class='section-heading'> Valor </h5>
-            </div>
+    </div>
+    <br>
+    <div class="form-group row align items center">
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Fecha </h5>
         </div>
-        {% if receivers %}
-            {% for receiver in receivers %}
-                <div class="form-group row align items center">
-                    <div class="col-sm-4">
-                        <h5 class='section-heading align items cente'> {{ receiver[2] }} </h5>
-                    </div>
-                    <div class="col-sm-4">
-                        <p> {{ receiver[0] }}</p>
-                    </div>
-                    <div class="col-sm-4">
-                        <p>{{ receiver[1] }}</p>
-                    </div>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Cuenta Destino </h5>
+        </div>
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Usuario Destino </h5>
+        </div>
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Cantidad </h5>
+        </div>
 
     </div>
+    {% if sends %}
+        {% for send in sends %}
+            <div class="form-group row align items center">
+                <div class="col-sm-3">
+                    <h5 class='section-heading'> {{ send[0] }} </h5>
+                </div>
+                <div class="col-sm-3">
+                    <p> {{ send[1] }}</p>
+                </div>
+                <div class="col-sm-3">
+                    <p>{{ send[2] }}</p>
+                </div>
+                <div class="col-sm-3">
+                    <p>{{ send[3] }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <br><br>
+
+    <div class="form-group row align items center">
+        <div class="col-md-12">
+            <h3 class='section-heading align items center'> Transacciones Recibidas </h3>
+        </div>
+    </div>
+    <br>
+    <div class="form-group row align items center">
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Fecha </h5>
+        </div>
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Cuenta Origen </h5>
+        </div>
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Usuario Origen </h5>
+        </div>
+        <div class="col-sm-3">
+            <h5 class='section-heading'> Cantidad </h5>
+        </div>
+    </div>
+    {% if receivers %}
+        {% for receiver in receivers %}
+            <div class="form-group row align items center">
+                <div class="col-sm-3">
+                    <h5 class='section-heading align items cente'> {{ receiver[0] }} </h5>
+                </div>
+                <div class="col-sm-3">
+                    <p> {{ receiver[1] }}</p>
+                </div>
+                <div class="col-sm-3">
+                    <p>{{ receiver[2] }}</p>
+                </div>
+                <div class="col-sm-3">
+                    <p>{{ receiver[3] }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+</div>
 
 {%endblock%}

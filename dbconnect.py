@@ -8,15 +8,6 @@ CREATE TABLE users (id INT(11) AUTO_INCREMENT PRIMARY KEY,
                     email VARCHAR(40),
                     created_date DATETIME);
 
-CREATE TABLE transactions (id INT(11) AUTO_INCREMENT PRIMARY KEY,
-                            user_id INT(11),
-                            user_id_dest INT(11),
-                            valor INT(20),
-                            type VARCHAR(30),
-                            otp INT(9),
-                            created_date DATETIME,
-                            FOREIGN KEY(user_id) REFERENCES users(id));
-
 CREATE TABLE otps (id INT(11) AUTO_INCREMENT PRIMARY KEY,
                     otp INT(9),
                     user_id INT(11),
@@ -25,11 +16,24 @@ CREATE TABLE otps (id INT(11) AUTO_INCREMENT PRIMARY KEY,
                     active CHAR (10),
                     FOREIGN KEY(user_id) REFERENCES users(id));
 
-CREATE TABLE comments (id INT(11) AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE accounts (id INT(11) AUTO_INCREMENT PRIMARY KEY,
                         user_id INT(11),
-                        text VARCHAR(200),
+                        amount INT(15),
                         created_date DATETIME,
+                        last_use_date DATETIME,
+                        active CHAR (10),
                         FOREIGN KEY(user_id) REFERENCES users(id));
+ALTER TABLE accounts AUTO_INCREMENT = 1000;
+
+CREATE TABLE transactions (id INT(11) AUTO_INCREMENT PRIMARY KEY,
+                            account_id INT(11),
+                            account_id_dest INT(11),
+                            username_dest VARCHAR(50),
+                            amount INT(20),
+                            type VARCHAR(30),
+                            otp INT(9),
+                            created_date DATETIME,
+                            FOREIGN KEY(account_id) REFERENCES accounts(id));
 """
 
 def connection():
