@@ -40,7 +40,7 @@ def connection():
     conn = MySQLdb.connect(
     host='localhost',
     user='root',
-    passwd='SQLS3rv3r',
+    passwd='admin', #'SQLS3rv3r',
     db='BDBankAndes'
     )
 
