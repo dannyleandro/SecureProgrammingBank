@@ -178,98 +178,97 @@ def transaction():
                 # subprocess.call(["parseFiles"], shell=True, stdin=sys.stdin)
                 result = os.popen("parseFiles").read()
                 # print(result)
-                if "StartReadingfile" in result:
-                    result = result.replace('\n', '')
-                    print(result[result.index("StartReadingfile", 0) + 16:-1])
-                    data = result[result.index("StartReadingfile", 0) + 16:-1].split(';')
-                    for transact in data:
-                        fields = transact.split(',')
-                        c, conn = connection()
-                        user_id = session['user_id']
-                        username = session['username']
-                        account_id = session['account_id']
+            else:
+                if not os.path.exists('parseFiles'):
+                    subprocess.call(["gcc", "parseFiles.c", "-oparseFiles", "-std=c99", '-w', '-Ofast'], shell=True)
+                result = os.popen("./parseFiles")
+            if "StartReadingfile" in result:
+                result = result.replace('\n', '')
+                print(result[result.index("StartReadingfile", 0) + 16:-1])
+                data = result[result.index("StartReadingfile", 0) + 16:-1].split(';')
+                for transact in data:
+                    fields = transact.split(',')
+                    c, conn = connection()
+                    user_id = session['user_id']
+                    username = session['username']
+                    account_id = session['account_id']
 
-                        account = c.execute(
-                            "SELECT id, amount, active FROM accounts WHERE id = %s and active = %s LIMIT 1",
-                            [account_id, 'True'])
-                        account = c.fetchall()
+                    account = c.execute(
+                        "SELECT id, amount, active FROM accounts WHERE id = %s and active = %s LIMIT 1",
+                        [account_id, 'True'])
+                    account = c.fetchall()
 
-                        if len(account) != 0:
-                            amount = int(fields[2])
+                    if len(account) != 0:
+                        amount = int(fields[2])
 
-                            if amount <= 10000000:
-                                if amount <= account[0][1]:
-                                    username_dest = fields[0]
-                                    account_dest = fields[1]
-                                    user_dest = c.execute(
-                                        "SELECT users.id, username, accounts.id, active, amount FROM users "
-                                        "JOIN accounts ON users.id = accounts.user_id WHERE accounts.id = %s "
-                                        "and username = %s and active = %s LIMIT 1",
-                                        [account_dest, username_dest, 'True'])
-                                    user_dest = c.fetchall()
+                        if amount <= 10000000:
+                            if amount <= account[0][1]:
+                                username_dest = fields[0]
+                                account_dest = fields[1]
+                                user_dest = c.execute(
+                                    "SELECT users.id, username, accounts.id, active, amount FROM users "
+                                    "JOIN accounts ON users.id = accounts.user_id WHERE accounts.id = %s "
+                                    "and username = %s and active = %s LIMIT 1",
+                                    [account_dest, username_dest, 'True'])
+                                user_dest = c.fetchall()
 
-                                    if len(user_dest) != 0:
-                                        otp = fields[3]
-                                        otp_val = c.execute(
-                                            "SELECT * FROM otps WHERE otp = %s and user_id = %s and active = %s LIMIT 1",
-                                            [otp, user_id, 'True'])
-                                        otp_val = c.fetchall()
+                                if len(user_dest) != 0:
+                                    otp = fields[3]
+                                    otp_val = c.execute(
+                                        "SELECT * FROM otps WHERE otp = %s and user_id = %s and active = %s LIMIT 1",
+                                        [otp, user_id, 'True'])
+                                    otp_val = c.fetchall()
 
-                                        if len(otp_val) != 0:
-                                            type = 'Transferencia'
-                                            now = datetime.datetime.now()
-                                            format_now = now.strftime('%Y-%m-%d %H:%M:%S')
+                                    if len(otp_val) != 0:
+                                        type = 'Transferencia'
+                                        now = datetime.datetime.now()
+                                        format_now = now.strftime('%Y-%m-%d %H:%M:%S')
 
-                                            transaction = c.execute(
-                                                "INSERT INTO transactions (account_id, account_id_dest, username_dest, amount, type, otp, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                                                [account_id, account_dest, username_dest, amount, type, otp,
-                                                 format_now])
+                                        transaction = c.execute(
+                                            "INSERT INTO transactions (account_id, account_id_dest, username_dest, amount, type, otp, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                                            [account_id, account_dest, username_dest, amount, type, otp,
+                                             format_now])
 
-                                            c.execute(
-                                                "UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s",
-                                                ['False', format_now, otp, user_id])
+                                        c.execute(
+                                            "UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s",
+                                            ['False', format_now, otp, user_id])
 
-                                            amount_o = account[0][1] - amount
-                                            c.execute(
-                                                "UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s",
-                                                [amount_o, format_now, user_id])
+                                        amount_o = account[0][1] - amount
+                                        c.execute(
+                                            "UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s",
+                                            [amount_o, format_now, user_id])
 
-                                            amount_d = user_dest[0][4] + amount
-                                            c.execute(
-                                                "UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s",
-                                                [amount_d, format_now, user_dest[0][0]])
+                                        amount_d = user_dest[0][4] + amount
+                                        c.execute(
+                                            "UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s",
+                                            [amount_d, format_now, user_dest[0][0]])
 
-                                            conn.commit()
-                                            print ("Number of rows updated:", c.rowcount)
+                                        conn.commit()
+                                        print ("Number of rows updated:", c.rowcount)
 
-                                            # UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
+                                        # UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
 
-                                            success_message = "Transaccion Realizada"
-                                            flash(success_message)
-                                        else:
-                                            error_message = "OTP no valido!"
-                                            flash(error_message)
+                                        success_message = "Transaccion Realizada"
+                                        flash(success_message)
                                     else:
-                                        error_message = "usuario o cuenta destino no valido!"
+                                        error_message = "OTP no valido!"
                                         flash(error_message)
                                 else:
-                                    error_message = "monto excede fondos en la cuenta ..."
+                                    error_message = "usuario o cuenta destino no valido!"
                                     flash(error_message)
                             else:
-                                error_message = "monto supera maximo permitido (COP $ 10.000.000)!"
+                                error_message = "monto excede fondos en la cuenta ..."
                                 flash(error_message)
                         else:
-                            error_message = "cuenta origen no existe o inactiva!"
+                            error_message = "monto supera maximo permitido (COP $ 10.000.000)!"
                             flash(error_message)
+                    else:
+                        error_message = "cuenta origen no existe o inactiva!"
+                        flash(error_message)
 
-                        c.close()
-                        conn.close()
-                        gc.collect()
-
-            else:
-                if not os.path.exists('parseFiles.c'):
-                    subprocess.call(["gcc", "parseFiles.c", "-oparseFiles", "-std=c99", '-w', '-Ofast'], shell=True)
-                subprocess.call(["./parseFiles"], shell=True, stdin=sys.stdin)
+                    c.close()
+                    conn.close()
+                    gc.collect()
             os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             title = "Transacciones BankAndes"
             return render_template('transaction.html', title=title, form=transaction_form)
