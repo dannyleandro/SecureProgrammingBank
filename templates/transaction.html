@@ -24,6 +24,7 @@
     <div class="w3-top">
         <div class="w3-bar w3-yellow w3-card w3-right-align w3-large">
             <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+            <a href="user" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
             <a href="thistory" class="w3-bar-item w3-button w3-padding-large w3-white">Historic Transactions</a>
             <a href="logout" class="w3-bar-item w3-button w3-padding-large w3-white">Logout</a>
         </div>
@@ -51,49 +52,61 @@
 
     <div class="container">
             <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <br>
+                    <form name="sentTransaction" id="contactForm" method="POST">
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                {{ render_field(form.desusername, class='form-control') }}
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                {{ render_field(form.desaccount, class='form-control') }}
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                {{ render_field(form.amount, class='form-control') }}
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
+                        <div class="row control-group">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+                                {{ render_field(form.otp, class='form-control') }}
+                                <p class="help-block text-danger"></p>
+                            </div>
+                        </div>
 
-                <br>
-                <form name="sentTransaction" id="contactForm" method="POST">
-                    <div class="row control-group">
-                        <div class="form-group col-xs-12 floating-label-form-group controls">
-                            {{ render_field(form.desusername, class='form-control') }}
-                            <p class="help-block text-danger"></p>
+                        <div id="success"></div>
+                        <div class="row">
+                            <div class="form-group col-xs-12">
+                                <button type="submit" class="w3-button w3-black w3-padding-large w3-large w3-margin-top">Confirmar</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row control-group">
-                        <div class="form-group col-xs-12 floating-label-form-group controls">
-                            {{ render_field(form.desaccount, class='form-control') }}
-                            <p class="help-block text-danger"></p>
-                        </div>
-                    </div>
-                    <div class="row control-group">
-                        <div class="form-group col-xs-12 floating-label-form-group controls">
-                            {{ render_field(form.amount, class='form-control') }}
-                            <p class="help-block text-danger"></p>
-                        </div>
-                    </div>
-                    <div class="row control-group">
-                        <div class="form-group col-xs-12 floating-label-form-group controls">
-                            {{ render_field(form.otp, class='form-control') }}
-                            <p class="help-block text-danger"></p>
-                        </div>
-                    </div>
-
-                    <div id="success"></div>
+                    </form>
+                    <br>
+                    <br>
                     <div class="row">
                         <div class="form-group col-xs-12">
-                            <button type="submit" class="w3-button w3-black w3-padding-large w3-large w3-margin-top">Confirmar</button>
+                            <h3 class='section-heading align items center'> Carga de Archivos Multiples Transacciones </h3>
                         </div>
                     </div>
-                </form>
-                <br>
-                <form action="" method="POST" enctype="multipart/form-data">
-					<div class="form-group">
-						<input type="file" name="file" class="form-control" placeholder="Archivo con transacciones" required>
-					</div>
-					<button class="w3-button w3-black w3-padding-large w3-large w3-margin-top" type="submit">Cargar Archivo</button>
-				</form>
+
+                    <form action="" method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="form-group col-xs-12 floating-label-form-group controls">
+        						<input type="file" name="file" class="form-control" placeholder="Archivo con transacciones" required>
+        					</div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-xs-12">
+    					        <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top" type="submit">Cargar Archivo</button>
+                            </div>
+                        </div>
+    				</form>
             </div>
         </div>
     </div>

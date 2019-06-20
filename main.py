@@ -181,7 +181,7 @@ def transaction():
             else:
                 if not os.path.exists('parseFiles'):
                     subprocess.call(["gcc", "parseFiles.c", "-oparseFiles", "-std=c99", '-w', '-Ofast'], shell=True)
-                result = os.popen("./parseFiles")
+                result = os.popen("./parseFiles").read()
             if "StartReadingfile" in result:
                 result = result.replace('\n', '')
                 print(result[result.index("StartReadingfile", 0) + 16:-1])
