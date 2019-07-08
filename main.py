@@ -28,8 +28,11 @@ import os
 import sys
 import platform
 import subprocess
+import hmac
+import time
 from werkzeug.utils import secure_filename
-
+import hashlib
+import binascii
 UPLOAD_FOLDER = 'files'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
@@ -57,7 +60,6 @@ def before_request():
 
 @app.after_request
 def after_request(response):
-    print ('despues')
 #    print g.test
     return response
 
@@ -69,19 +71,19 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-#    print g.test
+    #  print g.test
     title = "BankAndes"
     return render_template('index.html', title = title)
 
 @app.route('/user')
 def user():
-#    print g.test
+    # print g.test
     username = session['username']
     account_id = session['account_id']
 
     c, conn = connection()
 
-    accounts = c.execute("SELECT created_date, id, amount, last_use_date, active FROM accounts WHERE id = %s and active = %s LIMIT 1",[account_id, 'True'])
+    c.execute("SELECT created_date, id, amount, last_use_date, active FROM accounts WHERE id = %s and active = %s LIMIT 1",[account_id, 'True'])
     accounts = c.fetchall()
 
     c.close()
@@ -111,22 +113,23 @@ def transaction():
                     if amount <= account[0][1]:
                         username_dest = transaction_form.desusername.data
                         account_dest = transaction_form.desaccount.data
-                        user_dest = c.execute("SELECT users.id, username, accounts.id, active, amount FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.id = %s and username = %s and active = %s LIMIT 1",[account_dest, username_dest, 'True'])
+                        c.execute("SELECT users.id, username, accounts.id, active, amount FROM users JOIN accounts ON users.id = accounts.user_id WHERE accounts.id = %s and username = %s and active = %s LIMIT 1",[account_dest, username_dest, 'True'])
                         user_dest = c.fetchall()
 
                         if len(user_dest) != 0:
+                            otp_token = generate_otp_token(user_id, account_dest, amount)
                             otp = transaction_form.otp.data
-                            otp_val = c.execute("SELECT * FROM otps WHERE otp = %s and user_id = %s and active = %s LIMIT 1",[otp, user_id, 'True'])
-                            otp_val = c.fetchall()
-
-                            if len(otp_val) != 0:
+                            # otp_val = c.execute("SELECT * FROM otps WHERE otp = %s and user_id = %s and active = %s LIMIT 1",[otp, user_id, 'True'])
+                            # otp_val = c.fetchall()
+                            # if len(otp_val) != 0:
+                            if str(otp) == str(otp_token):
                                 type = 'Transferencia'
                                 now = datetime.datetime.now()
                                 format_now = now.strftime('%Y-%m-%d %H:%M:%S')
 
                                 transaction = c.execute("INSERT INTO transactions (account_id, account_id_dest, username_dest, amount, type, otp, created_date) VALUES (%s, %s, %s, %s, %s, %s, %s)", [account_id, account_dest, username_dest, amount, type, otp, format_now])
 
-                                c.execute("UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s", ['False', format_now, otp, user_id])
+                                #  c.execute("UPDATE otps SET active = %s, used_date = %s where otp = %s and user_id = %s", ['False', format_now, otp, user_id])
 
                                 amount_o = account[0][1] - amount
                                 c.execute("UPDATE accounts SET amount = %s, last_use_date = %s WHERE user_id = %s", [amount_o, format_now, user_id])
@@ -137,7 +140,7 @@ def transaction():
                                 conn.commit()
                                 print ("Number of rows updated:",  c.rowcount)
 
-                #UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
+                #  UPDATE otps SET active = 'False', used_date = '2019-06-17 09:01:21' where otp = 732937357 and user_id = 6;
 
                                 success_message = "Transaccion Realizada"
                                 flash(success_message)
@@ -277,7 +280,7 @@ def transaction():
     return render_template('transaction.html', title = title, form = transaction_form, username = username)
 
 
-@app.route('/thistory', methods = ['GET'])
+@app.route('/thistory', methods=['GET'])
 def thistory():
     c, conn = connection()
     account_id = session['account_id']
@@ -295,6 +298,7 @@ def thistory():
     username = session['username']
     return render_template('thistory.html', sends = sends, receivers = receivers, title = title, username = username)
 
+
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
         c, conn = connection()
@@ -305,8 +309,11 @@ def login():
             password = login_form.password.data
             user = c.execute("SELECT users.id, username, password, accounts.id as account FROM users JOIN accounts ON users.id = accounts.user_id  WHERE username = %s LIMIT 1",[username, ])
             user = c.fetchall()
-            if len(user) !=0:
-                if sha256_crypt.verify(password, user[0][2]):
+            h = hmac.new(bytes("ZG6PLNRAKV6EMH5P2WVSG50B67IDR7UI", 'utf-8'),
+                         bytes(str(login_form.password.data), 'ASCII'),
+                         hashlib.sha256)
+            if len(user) != 0:
+                if h.hexdigest() == user[0][2]:  # sha256_crypt.verify(password, user[0][2]):
                     success_message = 'Bienvenido {} a BankAndes'.format(username)
                     flash(success_message)
                     session['username'] = username
@@ -333,6 +340,7 @@ def login():
 #        error = "usuario o contrasena no validos!"
 #        return render_template("login.html", error = error, title = title, form = login_form)
 
+
 @app.route('/logout', methods = ['GET', 'POST'])
 def logout():
     if 'username' in session:
@@ -342,13 +350,26 @@ def logout():
     return redirect(url_for('index'))
 
 
+def generate_otp_token(user_id, dest_account, ammount):
+    c, conn = connection()
+    c.execute("SELECT users.id, username, password FROM users WHERE users.id = %s LIMIT 1", [user_id, ])
+    user = c.fetchall()
+    millis = int(round(time.time() * 1000))
+    tiempo = str(millis)[:-5]
+    message = "%s%s%s%s" % (user[0][2], dest_account, ammount, tiempo)
+
+    h = hmac.new(bytes("ZG6PLNRAKV6EMH5P2WVSG50B67IDR7UI", 'utf-8'), bytes(message, 'ASCII'), hashlib.sha1)
+    token = h.hexdigest()
+    token = str(int("".join(filter(str.isdigit, token))))
+    return token[:8]
+
 def generar_otp(user_id, created_date):
 
     c, conn = connection()
     otp_list = []
     for r in range(1, 101):
         otp = random.randint(1000000, 999999999)
-        row_o = [otp, user_id, created_date, created_date,'True']
+        row_o = [otp, user_id, created_date, created_date, 'True']
         otp_row = c.execute("INSERT INTO otps (otp, user_id, created_date, used_date, active) VALUES (%s, %s, %s, %s, %s)", row_o)
         conn.commit()
         otp_list.append(otp)
@@ -362,13 +383,17 @@ def generar_otp(user_id, created_date):
 
     return otp_list
 
+
 @app.route('/register', methods = ['GET', 'POST'])
 def register():
     register_form = forms.RegisterForm(request.form)
     if request.method == 'POST' and register_form.validate():
         username = register_form.username.data
         email = register_form.email.data
-        password = sha256_crypt.encrypt(str(register_form.password.data))
+        h = hmac.new(bytes("ZG6PLNRAKV6EMH5P2WVSG50B67IDR7UI", 'utf-8'),
+                     bytes(str(register_form.password.data), 'ASCII'),
+                     hashlib.sha256)
+        password = h.hexdigest()  # sha256_crypt.encrypt(str(register_form.password.data))
         c,conn = connection()
         user = c.execute("SELECT * FROM users where username = (%s)", [username, ])
         user = c.fetchall()
