@@ -1,43 +1,32 @@
 from flask import Flask
 from flask import render_template
 from flask import request
-from flask import make_response
 from flask import session
 from flask import flash
-from flask import g
 from flask import redirect
 from flask import url_for
 from flask_mail import Mail
 from flask_mail import Message
 
-#from config import DevelopmentConfig
 
 import forms
 
-#from models import db
-#from models import User
-#from models import Comment
 from dbconnect import connection
 
-from passlib.hash import sha256_crypt
 import random
-from MySQLdb import escape_string as thwart
 import datetime
 import gc
 import os
-import sys
 import platform
 import subprocess
 import hmac
 import time
 from werkzeug.utils import secure_filename
 import hashlib
-import binascii
 UPLOAD_FOLDER = 'files'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 app = Flask(__name__)
-#app.config.from_object(DevelopmentConfig)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = 'Secreto'
 app.DEBUG = True
@@ -60,7 +49,6 @@ def before_request():
 
 @app.after_request
 def after_request(response):
-#    print g.test
     return response
 
 
@@ -71,13 +59,11 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    #  print g.test
     title = "BankAndes"
     return render_template('index.html', title = title)
 
 @app.route('/user')
 def user():
-    # print g.test
     username = session['username']
     account_id = session['account_id']
 
@@ -309,7 +295,7 @@ def login():
             password = login_form.password.data
             user = c.execute("SELECT users.id, username, password, accounts.id as account FROM users JOIN accounts ON users.id = accounts.user_id  WHERE username = %s LIMIT 1",[username, ])
             user = c.fetchall()
-            h = hmac.new(bytes("ZG6PLNRAKV6EMH5P2WVSG50B67IDR7UI", 'utf-8'),
+            h = hmac.new(bytes(os.environ['KEY'], 'utf-8'),
                          bytes(str(login_form.password.data), 'ASCII'),
                          hashlib.sha256)
             if len(user) != 0:
@@ -341,7 +327,7 @@ def login():
 #        return render_template("login.html", error = error, title = title, form = login_form)
 
 
-@app.route('/logout', methods = ['GET', 'POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     if 'username' in session:
         session.clear()
@@ -358,7 +344,7 @@ def generate_otp_token(user_id, dest_account, ammount):
     tiempo = str(millis)[:-5]
     message = "%s%s%s%s" % (user[0][2], dest_account, ammount, tiempo)
 
-    h = hmac.new(bytes("ZG6PLNRAKV6EMH5P2WVSG50B67IDR7UI", 'utf-8'), bytes(message, 'ASCII'), hashlib.sha1)
+    h = hmac.new(bytes(os.environ['KEY'], 'utf-8'), bytes(message, 'ASCII'), hashlib.sha1)
     token = h.hexdigest()
     token = str(int("".join(filter(str.isdigit, token))))
     return token[:8]
@@ -390,7 +376,7 @@ def register():
     if request.method == 'POST' and register_form.validate():
         username = register_form.username.data
         email = register_form.email.data
-        h = hmac.new(bytes("ZG6PLNRAKV6EMH5P2WVSG50B67IDR7UI", 'utf-8'),
+        h = hmac.new(bytes(os.environ['KEY'], 'utf-8'),
                      bytes(str(register_form.password.data), 'ASCII'),
                      hashlib.sha256)
         password = h.hexdigest()  # sha256_crypt.encrypt(str(register_form.password.data))
